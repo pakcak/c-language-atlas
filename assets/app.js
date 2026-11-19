@@ -454,7 +454,10 @@
 
     function updateRoute(replace) {
         var query = new URLSearchParams(routeParams()).toString();
-        var target = "#" + query;
+        var url = new URL(window.location.href);
+        url.search = "";
+        url.hash = query;
+        var target = url.toString();
         try {
             if (replace) {
                 history.replaceState(null, "", target);
@@ -463,7 +466,7 @@
             }
         } catch (error) {
             ignoreNextHashChange = true;
-            window.location.hash = target;
+            window.location.hash = "#" + query;
             window.setTimeout(function () { ignoreNextHashChange = false; }, 0);
         }
     }
@@ -479,7 +482,7 @@
         if (difficulties.indexOf(state.difficulty) === -1) { state.difficulty = "all"; }
         if (allTags.indexOf(state.tag) === -1) { state.tag = "all"; }
 
-        if (entryParam && entryMap.has(entryParam)) {
+        if (entryParam) {
             state.view = "detail";
             state.entryId = entryParam;
         } else if (params.get("view") === "browse" || state.query || state.module !== "all" ||
@@ -678,6 +681,13 @@
         state.view = "browse";
         updateRoute(true);
         render();
+    });
+
+    moduleNav.addEventListener("click", function (event) {
+        var moduleButton = event.target.closest("[data-module]");
+        if (moduleButton) {
+            openModule(moduleButton.getAttribute("data-module"));
+        }
     });
 
     searchInput.addEventListener("input", function () {
