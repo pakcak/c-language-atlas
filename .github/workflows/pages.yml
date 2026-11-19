@@ -25,71 +25,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Build Pages artifact
-        env:
-          SHARE_BASE: https://c-language-atlas.app.workbuddy.host
-          SHARE_CODE: H23KU4YSTX
+      - name: Build Pages artifact from repository
         run: |
-          python - <<'PY'
-          import os
-          import pathlib
-          import urllib.request
-
-          base = os.environ["SHARE_BASE"].rstrip("/")
-          share_code = os.environ["SHARE_CODE"]
-          paths = [
-              "README.md",
-              "INDEX.md",
-              "TAGS.md",
-              "TEMPLATE.md",
-              "index.html",
-              "assets/style.css",
-              "assets/app.js",
-              "data/library.js",
-              "data/library.json",
-              "modules/01-program-basics.md",
-              "modules/02-data-types.md",
-              "modules/03-operators.md",
-              "modules/04-control-flow.md",
-              "modules/05-functions.md",
-              "modules/06-arrays.md",
-              "modules/07-strings.md",
-              "modules/08-pointers.md",
-              "modules/09-structures-unions.md",
-              "modules/10-enums.md",
-              "modules/11-memory.md",
-              "modules/12-files.md",
-              "modules/13-preprocessor.md",
-              "modules/14-compilation-linking.md",
-              "modules/15-standard-library.md",
-              "modules/16-debugging-errors.md",
-              "modules/17-algorithms.md",
-              "modules/18-pitfalls.md",
-          ]
-
-          for relative in paths:
-              url = f"{base}/{relative}?sharecode={share_code}"
-              request = urllib.request.Request(
-                  url,
-                  headers={"User-Agent": "c-atlas-pages-sync"},
-              )
-              with urllib.request.urlopen(request, timeout=45) as response:
-                  if response.status != 200:
-                      raise RuntimeError(f"{relative}: HTTP {response.status}")
-                  data = response.read()
-
-              published = pathlib.Path("public") / relative
-              published.parent.mkdir(parents=True, exist_ok=True)
-              published.write_bytes(data)
-              print(f"published {relative}: {len(data)} bytes")
-
-          pathlib.Path("public/.nojekyll").touch()
-          PY
+          mkdir -p public
+          cp -R README.md INDEX.md TAGS.md TEMPLATE.md index.html \
+            assets data modules public/
+          touch public/.nojekyll
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
