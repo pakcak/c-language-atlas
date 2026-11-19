@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <meta name="description" content="可离线检索、系统学习的中文 C 语言资料库">
+    <title>C Atlas · C 语言资料库</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <button class="brand" type="button" data-action="home" aria-label="返回资料库首页">
+                <span class="brand-mark" aria-hidden="true">C</span>
+                <span class="brand-copy">
+                    <strong>C Atlas</strong>
+                    <small>C 语言资料库</small>
+                </span>
+            </button>
+
+            <div class="search-wrap" role="search">
+                <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M10.5 3a7.5 7.5 0 1 1-4.62 13.4l-3.2 3.2-1.42-1.42 3.2-3.2A7.5 7.5 0 0 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"/>
+                </svg>
+                <input id="search-input" type="search" autocomplete="off" spellcheck="false"
+                       placeholder="搜索概念、函数、报错、标签或编号，例如：悬空指针 / qsort / E08.02"
+                       aria-label="全文搜索">
+                <button id="search-clear" class="search-clear" type="button" aria-label="清空搜索">×</button>
+                <kbd class="shortcut">/</kbd>
+            </div>
+
+            <div class="topbar-actions">
+                <button class="ghost-button" type="button" data-action="browse-all">浏览全部</button>
+                <a class="ghost-button source-link" href="README.md" title="打开 Markdown 使用说明">说明</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <aside class="sidebar" aria-label="模块导航">
+            <div class="sidebar-head">
+                <span class="eyebrow">目录</span>
+                <h2>18 个模块</h2>
+                <p>按编号顺序学习，或用搜索与标签快速定位。</p>
+            </div>
+            <nav id="module-nav" class="module-nav"></nav>
+            <div class="sidebar-foot">
+                <div class="mini-stat"><strong id="side-entry-count">—</strong><span>知识条目</span></div>
+                <div class="mini-stat"><strong id="side-tag-count">—</strong><span>检索标签</span></div>
+            </div>
+        </aside>
+
+        <main id="main" class="main" tabindex="-1">
+            <noscript>
+                <section class="panel">
+                    <h1>需要启用 JavaScript</h1>
+                    <p>离线检索页面需要浏览器脚本。也可以直接阅读 <a href="INDEX.md">INDEX.md</a> 和 modules 目录中的 Markdown 文档。</p>
+                </section>
+            </noscript>
+            <div class="initial-loading">正在载入资料库…</div>
+        </main>
+    </div>
+
+    <footer class="site-footer">
+        <span>C Atlas · 以 C11/C17 为主的学习与查阅资料库</span>
+        <span>Markdown 为内容源 · 无外部依赖 · 可离线使用</span>
+    </footer>
+
+    <script src="data/library.js"></script>
+    <script src="assets/app.js"></script>
+</body>
+</html>
