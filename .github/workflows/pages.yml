@@ -1,0 +1,128 @@
+name: Deploy C Atlas to GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Download C Atlas source files
+        env:
+          SHARE_BASE: https://c-language-atlas.app.workbuddy.host
+          SHARE_CODE: H23KU4YSTX
+        run: |
+          python - <<'PY'
+          import os
+          import pathlib
+          import urllib.request
+
+          base = os.environ["SHARE_BASE"].rstrip("/")
+          share_code = os.environ["SHARE_CODE"]
+          paths = [
+              "README.md",
+              "INDEX.md",
+              "TAGS.md",
+              "TEMPLATE.md",
+              "index.html",
+              "assets/style.css",
+              "assets/app.js",
+              "data/library.js",
+              "data/library.json",
+              "modules/01-program-basics.md",
+              "modules/02-data-types.md",
+              "modules/03-operators.md",
+              "modules/04-control-flow.md",
+              "modules/05-functions.md",
+              "modules/06-arrays.md",
+              "modules/07-strings.md",
+              "modules/08-pointers.md",
+              "modules/09-structures-unions.md",
+              "modules/10-enums.md",
+              "modules/11-memory.md",
+              "modules/12-files.md",
+              "modules/13-preprocessor.md",
+              "modules/14-compilation-linking.md",
+              "modules/15-standard-library.md",
+              "modules/16-debugging-errors.md",
+              "modules/17-algorithms.md",
+              "modules/18-pitfalls.md",
+              "tools/build_index.py",
+              "tools/validate_examples.py",
+              "tools/validate_site.py",
+          ]
+
+          for relative in paths:
+              url = f"{base}/{relative}?sharecode={share_code}"
+              request = urllib.request.Request(
+                  url,
+                  headers={"User-Agent": "c-atlas-pages-sync"},
+              )
+              with urllib.request.urlopen(request, timeout=45) as response:
+                  if response.status != 200:
+                      raise RuntimeError(f"{relative}: HTTP {response.status}")
+                  data = response.read()
+
+              source = pathlib.Path(relative)
+              source.parent.mkdir(parents=True, exist_ok=True)
+              source.write_bytes(data)
+
+              if not relative.startswith("tools/"):
+                  published = pathlib.Path("public") / relative
+                  published.parent.mkdir(parents=True, exist_ok=True)
+                  published.write_bytes(data)
+              print(f"downloaded {relative}: {len(data)} bytes")
+
+          pathlib.Path(".nojekyll").touch()
+          pathlib.Path("public/.nojekyll").touch()
+          PY
+
+      - name: Commit synchronized source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- README.md INDEX.md TAGS.md TEMPLATE.md index.html \
+            assets data modules tools .nojekyll
+          if git diff --cached --quiet; then
+            echo "No source changes to commit."
+          else
+            git commit -m "Sync C Atlas source files [skip ci]"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./public
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
