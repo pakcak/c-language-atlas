@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -24,15 +24,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Download C Atlas source files
+      - name: Build Pages artifact
         env:
           SHARE_BASE: https://c-language-atlas.app.workbuddy.host
           SHARE_CODE: H23KU4YSTX
@@ -72,9 +70,6 @@ jobs:
               "modules/16-debugging-errors.md",
               "modules/17-algorithms.md",
               "modules/18-pitfalls.md",
-              "tools/build_index.py",
-              "tools/validate_examples.py",
-              "tools/validate_site.py",
           ]
 
           for relative in paths:
@@ -88,32 +83,13 @@ jobs:
                       raise RuntimeError(f"{relative}: HTTP {response.status}")
                   data = response.read()
 
-              source = pathlib.Path(relative)
-              source.parent.mkdir(parents=True, exist_ok=True)
-              source.write_bytes(data)
+              published = pathlib.Path("public") / relative
+              published.parent.mkdir(parents=True, exist_ok=True)
+              published.write_bytes(data)
+              print(f"published {relative}: {len(data)} bytes")
 
-              if not relative.startswith("tools/"):
-                  published = pathlib.Path("public") / relative
-                  published.parent.mkdir(parents=True, exist_ok=True)
-                  published.write_bytes(data)
-              print(f"downloaded {relative}: {len(data)} bytes")
-
-          pathlib.Path(".nojekyll").touch()
           pathlib.Path("public/.nojekyll").touch()
           PY
-
-      - name: Commit synchronized source
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- README.md INDEX.md TAGS.md TEMPLATE.md index.html \
-            assets data modules tools .nojekyll
-          if git diff --cached --quiet; then
-            echo "No source changes to commit."
-          else
-            git commit -m "Sync C Atlas source files [skip ci]"
-            git push origin "HEAD:${GITHUB_REF_NAME}"
-          fi
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
