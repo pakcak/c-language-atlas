@@ -18,6 +18,9 @@ c-language-library/
 ├── TAGS.md                   # 标签命名、分层和检索方法
 ├── TEMPLATE.md               # 新条目模板与编写规范
 ├── index.html                # 离线查阅入口
+├── .github/workflows/
+│   └── pages.yml             # GitHub Actions：从仓库源文件部署 Pages
+├── .gitignore
 ├── modules/                  # 18 个主题模块，唯一内容源
 │   ├── 01-program-basics.md
 │   ├── 02-data-types.md
@@ -41,7 +44,8 @@ c-language-library/
 │   ├── style.css             # 查阅页样式
 │   └── app.js                # 搜索、筛选、导航与 Markdown 渲染
 ├── data/
-│   └── library.js            # 从模块文档生成的离线检索数据
+│   ├── library.js            # 从模块文档生成的离线检索数据
+│   └── library.json          # 同数据的机器可读版本
 ├── tools/
 │   ├── build_index.py        # 校验条目并生成索引与搜索数据
 │   ├── validate_examples.py  # 提取并可选进行独立 C 示例语法检查
@@ -113,6 +117,17 @@ python tools/validate_examples.py --compile
 - 第一条会校验 18 个模块的条目编号、必备字段、小节顺序、标签和交叉引用，并重新生成 `INDEX.md`、`data/library.js`、`data/library.json`。
 - 第二条检查 HTML 标签、本地资源引用、离线约束、生成数据一致性与 `INDEX.md` 覆盖；若有 Node.js，还会检查前端脚本语法和浏览器数据。
 - 第三条把可独立编译的 C 代码提取到 `examples/extracted/`；检测到 C 编译器时执行 `C17` 严格警告下的语法检查。多文件示例、头文件片段、故意错误的示例和 shell/Make/CMake 块不会误判为独立程序。
+
+## GitHub Pages 部署
+
+仓库中的 `.github/workflows/pages.yml` 会在 `main` 分支推送或手动触发时：
+
+1. 检出仓库源文件；
+2. 将 Markdown 文档、静态页面、脚本和生成数据复制到 `public/`；
+3. 写入 `public/.nojekyll`；
+4. 通过 GitHub Actions 配置、上传并部署 Pages。
+
+工作流只依赖本仓库内容，不依赖外部站点或私有令牌。仓库需将 Pages 的 **Source** 设置为 **GitHub Actions**。
 
 ## 准确性边界
 
